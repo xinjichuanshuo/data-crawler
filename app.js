@@ -9,7 +9,7 @@ var cookie;
 const url={
   url: "http://login.jiayuan.com/",
   login_url: "https://passport.jiayuan.com/dologin.php?pre_url=http://www.jiayuan.com/usercp",
-  pre_url: "http://www.jiayuan.com/usercp/?from=login"
+  pre_url: "http://www.jiayuan.com/usercp"
 };
 
 const headers = {
@@ -23,8 +23,8 @@ const headers = {
 }
 
 const loginInfo = {
-  name: '18851280888',
-  password: 'zjjc960704',
+  name: '13951650687',
+  password: 'hostate123',
   remem_pass: true,
   ljg_login: '1',
   m_p_l: '1',
@@ -49,6 +49,20 @@ function getLoginCookie() {
   superagent.post(url.login_url).set(headers).send(loginInfo).end(function (err, response) {
     if (!err) {
       cookie = response.headers["set-cookie"];
+      console.log(response.text)
+      // setCookie();
+      collectInfo();
+    } else {
+      console.log(err);
+    }
+  });
+}
+
+function setCookie() {
+  superagent.get(url.pre_url).set(headers).set("Cookie", cookie).end(function (err, response) {
+    if (!err) {
+      cookie = response.headers["set-cookie"];
+      console.log("new Cookie", cookie);
       // getResponseCookies();
       collectInfo();
     } else {
@@ -56,6 +70,8 @@ function getLoginCookie() {
     }
   });
 }
+
+
 
 function collectInfo() {
   const start_url = "http://www.jiayuan.com/10721906";
@@ -68,6 +84,7 @@ function collectInfo() {
     }
     
     const $ = cheerio.load(res.text);
+    // console.log(res.header)
 
     let data = dataParser($);
     console.log(data);
@@ -80,6 +97,7 @@ function dataParser($){
   data.username = _this.find('h4').children()[0].prev.data;
   data.id = _this.find('h4').find('span').text().replace('ID:', "");
   data.age = _this.find('.member_name').children()[0].prev.data.split('，')[0].replace('\'', "").replace('岁', "");
+  // console.log(_this.find('.member_info_list', '.fn-clear').html())
   _this.find('.member_info_list', '.fn-clear').find('em').each((i ,elem) => {
     switch(i){
       case 0:
@@ -93,10 +111,52 @@ function dataParser($){
       break;
       case 5:
       data.weight = $(elem).text();
+      break;
+      case 7:
+      data.race = $(elem).text();
+    }
+  });
+
+  // console.log($('.js_list', 'fn-clear').find('.ifno_r_con'))
+
+  $('.js_list', '.fn-clear').find('.ifno_r_con').each((i, elem) => {
+    let res;
+    switch(i){
+      case 0:
+      res = getRange($(elem).text());
+      data.least_age = res[0];
+      data.most_age = res[1];
+      break;
+      case 1:
+      res = getRange($(elem).text());
+      data.least_height = res[0];
+      data.most_heigth = res[1];
+      break;
+      case 2:
+      data.aim_race = $(elem).text();
+      break;
+      case 3:
+      data.aim_education = $(elem).text();
+      break;
+      case 5:
+      data.aim_marriage = $(elem).text();
+      break;
+      case 6:
+      data.aim_home = $(elem).text();
     }
   });
 
   return data;
+}
+
+function getRange(value) {
+  let regexp=/\d+/g;
+  let res = [];
+  while((match=regexp.exec(value))!=null){
+    res.push(match[0])
+  }
+
+  return res;
 }
 
 getParam();
