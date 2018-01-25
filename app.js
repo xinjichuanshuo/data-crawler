@@ -2,9 +2,9 @@ const superagent = require('superagent');
 const cheerio = require('cheerio');
 const fs = require('fs');
 
-const UserInfo = require('./userInfo');
+// const UserInfo = require('./userInfo');
 
-var cookie;
+var cookie = '';
 
 const url={
   url: "http://login.jiayuan.com/",
@@ -93,10 +93,13 @@ function collectInfo() {
 
 function dataParser($){ 
   const data = {};
+
   let _this = $('.member_info_r');
   data.username = _this.find('h4').children()[0].prev.data;
+  data.gender = ($('.nav_l').find('.cur').find('a').text()[0]=='她')? 'F':'M';
   data.id = _this.find('h4').find('span').text().replace('ID:', "");
   data.age = _this.find('.member_name').children()[0].prev.data.split('，')[0].replace('\'', "").replace('岁', "");
+  data.hometown = _this.find('.member_name').find('a').text().replace('显示地图',"");
   // console.log(_this.find('.member_info_list', '.fn-clear').html())
   _this.find('.member_info_list', '.fn-clear').find('em').each((i ,elem) => {
     switch(i){
@@ -159,4 +162,4 @@ function getRange(value) {
   return res;
 }
 
-getParam();
+collectInfo();
