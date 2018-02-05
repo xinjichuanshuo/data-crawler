@@ -1,8 +1,32 @@
 const superagent = require('superagent');
 const cheerio = require('cheerio');
 const fs = require('fs');
+const dataParser = require('./dataParser');
+const mongoose = require('mongoose');
 
 // const UserInfo = require('./userInfo');
+mongoose.connect('mongodb://localhost/jiayuan');
+var Single = mongoose.model('Single', {
+  username: String,
+  gender: String,
+  id: Number,
+  age: Number,
+  province: String,
+  city: String,
+  education: String,
+  height:  Number,
+  weight:  Number,
+  race: String,
+  least_age:  Number,
+  most_age:  Number,
+  least_height:  Number,
+  most_height:  Number,
+  aim_race: String,
+  aim_education: String,
+  aim_marriage: String,
+  aim_home: String
+});
+
 
 var cookie = '';
 
@@ -49,7 +73,7 @@ function getLoginCookie() {
   superagent.post(url.login_url).set(headers).send(loginInfo).end(function (err, response) {
     if (!err) {
       cookie = response.headers["set-cookie"];
-      console.log(response.text)
+      console.log(cookie);
       // setCookie();
       collectInfo();
     } else {
@@ -74,92 +98,30 @@ function setCookie() {
 
 
 function collectInfo() {
-  const start_url = "http://www.jiayuan.com/10721906";
+  let total = 0;
+  let index = 10000000;
 
-  superagent.get(start_url).set("Cookie", cookie).set(headers).end(function (err, res) {
-    // 抛错拦截
-    if(err){
-      console.log(err)
-      throw Error(err);
-    }
-    
-    const $ = cheerio.load(res.text);
-    // console.log(res.header)
-
-    let data = dataParser($);
-    console.log(data);
-  });
+  var startGetting = setInterval(() => {
+    // console.log("begin")
+    superagent.get(`http://www.jiayuan.com/${index}`).set("Cookie", cookie).set(headers).end(function (err, res) {
+      // 抛错拦截
+      if(err){
+      }   
+      const $ = cheerio.load(res.text);
+      let data = dataParser($);
+      console.log(index);
+      index += Math.floor(Math.random()*1000);
+      if(data){
+        const seed = new Single(data);
+        seed.save().then(() => {
+          console.log(total++)
+        });
+      }
+    });
+  }, 1000);
+  // startGetting();
 }
 
-function dataParser($){ 
-  const data = {};
 
-  let _this = $('.member_info_r');
-  data.username = _this.find('h4').children()[0].prev.data;
-  data.gender = ($('.nav_l').find('.cur').find('a').text()[0]=='她')? 'F':'M';
-  data.id = _this.find('h4').find('span').text().replace('ID:', "");
-  data.age = _this.find('.member_name').children()[0].prev.data.split('，')[0].replace('\'', "").replace('岁', "");
-  data.hometown = _this.find('.member_name').find('a').text().replace('显示地图',"");
-  // console.log(_this.find('.member_info_list', '.fn-clear').html())
-  _this.find('.member_info_list', '.fn-clear').find('em').each((i ,elem) => {
-    switch(i){
-      case 0:
-      data.education = $(elem).text();
-      break;
-      case 1:
-      data.height = $(elem).text();
-      break;
-      case 3:
-      data.salary = $(elem).text();
-      break;
-      case 5:
-      data.weight = $(elem).text();
-      break;
-      case 7:
-      data.race = $(elem).text();
-    }
-  });
-
-  // console.log($('.js_list', 'fn-clear').find('.ifno_r_con'))
-
-  $('.js_list', '.fn-clear').find('.ifno_r_con').each((i, elem) => {
-    let res;
-    switch(i){
-      case 0:
-      res = getRange($(elem).text());
-      data.least_age = res[0];
-      data.most_age = res[1];
-      break;
-      case 1:
-      res = getRange($(elem).text());
-      data.least_height = res[0];
-      data.most_heigth = res[1];
-      break;
-      case 2:
-      data.aim_race = $(elem).text();
-      break;
-      case 3:
-      data.aim_education = $(elem).text();
-      break;
-      case 5:
-      data.aim_marriage = $(elem).text();
-      break;
-      case 6:
-      data.aim_home = $(elem).text();
-    }
-  });
-
-  return data;
-}
-
-function getRange(value) {
-  let regexp=/\d+/g;
-  let res = [];
-  while((match=regexp.exec(value))!=null){
-    res.push(match[0])
-  }
-
-  return res;
-}
-
+// getParam();
 collectInfo();
