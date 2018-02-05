@@ -99,29 +99,32 @@ function setCookie() {
 
 function collectInfo() {
   let total = 0;
-  let index = 10000000;
+  let index = 20300965;
 
-  var startGetting = setInterval(() => {
-    // console.log("begin")
-    superagent.get(`http://www.jiayuan.com/${index}`).set("Cookie", cookie).set(headers).end(function (err, res) {
+  setInterval(() => {
+    const param = index;
+    superagent.get(`http://www.jiayuan.com/${param}`).set("Cookie", cookie).set(headers).end(function (err, res) {
       // 抛错拦截
       if(err){
-      }   
+      } 
       const $ = cheerio.load(res.text);
       let data = dataParser($);
-      console.log(index);
-      index += Math.floor(Math.random()*1000);
+      console.log(param);
       if(data){
         const seed = new Single(data);
         seed.save().then(() => {
-          console.log(total++)
+          console.log(param, total++)           
         });
-      }
+      } 
     });
+    index += Math.floor(Math.random()*1000);
   }, 1000);
   // startGetting();
 }
 
+function crawlingData(index){
+
+}
 
 // getParam();
 collectInfo();

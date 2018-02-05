@@ -20,6 +20,7 @@ module.exports = function dataParser($){
         break;
         case 2:
         data.weight = $(elem).text().replace('公斤', "");
+        if(data.weight=='--') data.weight = 0;
         break;
         case 4:
         data.race = $(elem).text().replace('族', "");;
