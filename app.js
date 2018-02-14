@@ -99,7 +99,7 @@ function setCookie() {
 
 function collectInfo() {
   let total = 0;
-  let index = 20300965;
+  let index = 0;
 
   setInterval(() => {
     const param = index;
