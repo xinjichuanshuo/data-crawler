@@ -12,7 +12,7 @@ npm update
 npm install -g node
 
 # 克隆项目到本地
-git clone git@github.com/xinjichuanshuo/data-crawler
+git clone git@github.com:xinjichuanshuo/data-crawler.git
 
 # 进入项目目录空间
 cd data-crawler
